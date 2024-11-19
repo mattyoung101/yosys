@@ -1,0 +1,9 @@
+logger -expect error "syntax error, unexpected '%'" 1
+
+read_verilog <<EOT
+module sc1 (i1 ,
+            %i11,
+);
+
+endmodule
+EOT
