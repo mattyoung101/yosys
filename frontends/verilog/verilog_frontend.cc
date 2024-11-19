@@ -677,11 +677,25 @@ YOSYS_NAMESPACE_END
 // the yyerror function used by bison to report parser errors
 void frontend_verilog_yyerror(char const *fmt, ...)
 {
+	// escape % character if it appears in the format string
+	std::vector<char> escape;
+	size_t len = strlen(fmt);
+	escape.reserve(len);
+	for (size_t i = 0; i < len; i++) {
+		// a double '%%' escapes a single '%'
+		if (fmt[i] == '%') {
+			escape.push_back('%');
+		}
+		escape.push_back(fmt[i]);
+	}
+
+	std::string escaped(escape.begin(), escape.end());
+
 	va_list ap;
 	char buffer[1024];
 	char *p = buffer;
 	va_start(ap, fmt);
-	p += vsnprintf(p, buffer + sizeof(buffer) - p, fmt, ap);
+	p += vsnprintf(p, buffer + sizeof(buffer) - p, escaped.c_str(), ap);
 	va_end(ap);
 	p += snprintf(p, buffer + sizeof(buffer) - p, "\n");
 	YOSYS_NAMESPACE_PREFIX log_file_error(YOSYS_NAMESPACE_PREFIX AST::current_filename, frontend_verilog_yyget_lineno(),
